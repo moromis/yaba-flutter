@@ -5,12 +5,14 @@ class MonthData {
   final int month;
   final List<Transaction> transactions;
   final bool isFrozen;
+  final double startingBalance;
 
   MonthData({
     required this.year,
     required this.month,
     required this.transactions,
     this.isFrozen = false,
+    this.startingBalance = 0.0,
   });
 
   String get monthKey => '$year-${month.toString().padLeft(2, '0')}';
@@ -30,6 +32,8 @@ class MonthData {
   }
 
   double get balance => totalIncome - totalExpenses;
+
+  double get endingBalance => startingBalance + balance;
 
   Map<String, double> get expensesByCategory {
     final Map<String, double> categoryTotals = {};
@@ -62,12 +66,14 @@ class MonthData {
     int? month,
     List<Transaction>? transactions,
     bool? isFrozen,
+    double? startingBalance,
   }) {
     return MonthData(
       year: year ?? this.year,
       month: month ?? this.month,
       transactions: transactions ?? this.transactions,
       isFrozen: isFrozen ?? this.isFrozen,
+      startingBalance: startingBalance ?? this.startingBalance,
     );
   }
 
@@ -77,6 +83,7 @@ class MonthData {
       'month': month,
       'transactions': transactions.map((t) => t.toJson()).toList(),
       'isFrozen': isFrozen,
+      'startingBalance': startingBalance,
     };
   }
 
@@ -85,9 +92,10 @@ class MonthData {
       year: json['year'],
       month: json['month'],
       transactions: (json['transactions'] as List)
-          .map((t) => Transaction.fromJson(t))
+          .map((t) => Transaction.fromJson(Map<String, dynamic>.from(t)))
           .toList(),
       isFrozen: json['isFrozen'] ?? false,
+      startingBalance: (json['startingBalance'] ?? 0.0).toDouble(),
     );
   }
 }

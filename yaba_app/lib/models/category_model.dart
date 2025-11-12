@@ -26,7 +26,7 @@ class Category {
     // Map common icon code points to const icons
     final iconCode = json['icon'] as int;
     IconData iconData;
-    
+
     switch (iconCode) {
       case 0xe59c: // shopping_cart
         iconData = Icons.shopping_cart;
@@ -61,7 +61,7 @@ class Category {
       default:
         iconData = Icons.category; // Default fallback
     }
-    
+
     return Category(
       id: json['id'],
       name: json['name'],

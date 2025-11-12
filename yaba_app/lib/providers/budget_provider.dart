@@ -137,6 +137,16 @@ class BudgetProvider extends ChangeNotifier {
     );
   }
 
+  Future<void> updateStartingBalance(double newBalance) async {
+    if (_currentMonth == null) return;
+
+    final updatedMonth = _currentMonth!.copyWith(startingBalance: newBalance);
+    await _storage.saveMonth(updatedMonth);
+    _currentMonth = updatedMonth;
+    notifyListeners();
+    _loadAllMonths();
+  }
+
   void switchMonth(int year, int month) {
     _loadMonth(year, month);
   }

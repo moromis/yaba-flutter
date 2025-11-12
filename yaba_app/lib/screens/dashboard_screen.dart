@@ -60,6 +60,12 @@ class DashboardScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 _buildMonthSelector(context, budgetProvider, currentMonth),
+                const SizedBox(height: 16),
+                _buildStartingBalanceCard(
+                  context,
+                  budgetProvider,
+                  currentMonth,
+                ),
                 const SizedBox(height: 24),
                 _buildSummaryCards(currentMonth),
                 const SizedBox(height: 24),
@@ -150,34 +156,46 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildStartingBalanceCard(
+    BuildContext context,
+    BudgetProvider provider,
+    currentMonth,
+  ) {
+    return _StartingBalanceCard(provider: provider, currentMonth: currentMonth);
+  }
+
   Widget _buildSummaryCards(currentMonth) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _SummaryCard(
-            title: 'Income',
-            amount: currentMonth.totalIncome,
-            color: Colors.green,
-            icon: Icons.arrow_downward,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _SummaryCard(
-            title: 'Expenses',
-            amount: currentMonth.totalExpenses,
-            color: Colors.red,
-            icon: Icons.arrow_upward,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _SummaryCard(
-            title: 'Balance',
-            amount: currentMonth.balance,
-            color: currentMonth.balance >= 0 ? Colors.blue : Colors.orange,
-            icon: Icons.account_balance_wallet,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _SummaryCard(
+                title: 'Income',
+                amount: currentMonth.totalIncome,
+                color: Colors.green,
+                icon: Icons.arrow_downward,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _SummaryCard(
+                title: 'Expenses',
+                amount: currentMonth.totalExpenses,
+                color: Colors.red,
+                icon: Icons.arrow_upward,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _SummaryCard(
+                title: 'Net',
+                amount: currentMonth.balance,
+                color: currentMonth.balance >= 0 ? Colors.blue : Colors.orange,
+                icon: Icons.account_balance_wallet,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -352,6 +370,138 @@ class _SummaryCard extends StatelessWidget {
                 color: color,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StartingBalanceCard extends StatefulWidget {
+  final BudgetProvider provider;
+  final dynamic currentMonth;
+
+  const _StartingBalanceCard({
+    required this.provider,
+    required this.currentMonth,
+  });
+
+  @override
+  State<_StartingBalanceCard> createState() => _StartingBalanceCardState();
+}
+
+class _StartingBalanceCardState extends State<_StartingBalanceCard> {
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.currentMonth.startingBalance == 0.0
+          ? ''
+          : widget.currentMonth.startingBalance.toStringAsFixed(2),
+    );
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(_StartingBalanceCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentMonth.startingBalance !=
+        oldWidget.currentMonth.startingBalance) {
+      _controller.text = widget.currentMonth.startingBalance == 0.0
+          ? ''
+          : widget.currentMonth.startingBalance.toStringAsFixed(2);
+    }
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (!_focusNode.hasFocus) {
+      _saveBalance();
+    }
+  }
+
+  void _saveBalance() {
+    final balance = double.tryParse(_controller.text) ?? 0.0;
+    if (balance != widget.currentMonth.startingBalance) {
+      widget.provider.updateStartingBalance(balance);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const Icon(Icons.account_balance, color: Colors.blue),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Starting Balance',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: '0.00',
+                      prefixText: '\$ ',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    enabled: !widget.currentMonth.isFrozen,
+                    onSubmitted: (_) => _saveBalance(),
+                  ),
+                ],
+              ),
+            ),
+            if (widget.currentMonth.startingBalance != 0.0)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'Ending Balance',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  Text(
+                    '\$${widget.currentMonth.endingBalance.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: widget.currentMonth.endingBalance >= 0
+                          ? Colors.green
+                          : Colors.red,
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
