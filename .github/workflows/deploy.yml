@@ -22,10 +22,11 @@ jobs:
         run: |
           cd yaba_app
           flutter pub get
-          flutter build web --release --base-href /yaba-flutter/
+          flutter build web --release --base-href /
       
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./yaba_app/build/web
+          cname: yaba.moromis.com
