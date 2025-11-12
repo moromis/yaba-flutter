@@ -23,10 +23,49 @@ class Category {
   }
 
   factory Category.fromJson(Map<String, dynamic> json) {
+    // Map common icon code points to const icons
+    final iconCode = json['icon'] as int;
+    IconData iconData;
+    
+    switch (iconCode) {
+      case 0xe59c: // shopping_cart
+        iconData = Icons.shopping_cart;
+        break;
+      case 0xe531: // directions_car
+        iconData = Icons.directions_car;
+        break;
+      case 0xe0ca: // bolt
+        iconData = Icons.bolt;
+        break;
+      case 0xe405: // movie
+        iconData = Icons.movie;
+        break;
+      case 0xe56c: // restaurant
+        iconData = Icons.restaurant;
+        break;
+      case 0xe3f3: // medical_services
+        iconData = Icons.medical_services;
+        break;
+      case 0xe5d3: // payments
+        iconData = Icons.payments;
+        break;
+      case 0xe8f9: // work
+        iconData = Icons.work;
+        break;
+      case 0xe8e5: // trending_up
+        iconData = Icons.trending_up;
+        break;
+      case 0xe5d4: // more_horiz
+        iconData = Icons.more_horiz;
+        break;
+      default:
+        iconData = Icons.category; // Default fallback
+    }
+    
     return Category(
       id: json['id'],
       name: json['name'],
-      icon: IconData(json['icon'], fontFamily: 'MaterialIcons'),
+      icon: iconData,
       color: Color(json['color']),
     );
   }
